@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2015,2016 Thorsten Liebig (Thorsten.Liebig@gmx.de)
+# Copyright (C) 2015-2025 Thorsten Liebig (Thorsten.Liebig@gmx.de)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published
@@ -39,6 +39,7 @@ import sys
 from libcpp.string cimport string
 from libcpp cimport bool
 from libc.stdint cimport uintptr_t
+from libcpp.vector cimport vector
 
 cimport CSXCAD.CSPrimitives
 from CSXCAD.Utilities import CheckNyDir, GetMultiDirs
@@ -95,6 +96,8 @@ cdef class CSPrimitives:
             raise Exception('Primitive type "USERDEFINED" not yet implemented!')
         elif prim_type == POLYHEDRONREADER:
             prim = CSPrimPolyhedronReader(pset, prop, no_init=no_init, **kw)
+        else:
+            raise Exception(f'fromType:: Unknown/invalid primitive type "{prim_type}"!')
         return prim
 
     @staticmethod
@@ -131,6 +134,17 @@ cdef class CSPrimitives:
             raise Exception('Different C++ class pointer already assigned to python wrapper class!')
         self.thisptr = ptr
         CSPrimitives._instances[<uintptr_t>self.thisptr] = self
+
+    def GetCopy(self, CSProperties prop=None):
+        cdef _CSProperties* prop_ptr
+        if prop is None:
+            prop_ptr = NULL
+        else:
+            prop_ptr = prop.thisptr
+        ptr = self.thisptr.GetCopy(prop_ptr)
+        return CSPrimitives.fromPtr(ptr)
+
+    copy = GetCopy
 
     def GetID(self):
         """
@@ -1151,6 +1165,16 @@ cdef class CSPrimPolyhedron(CSPrimitives):
         ptr = <_CSPrimPolyhedron*>self.thisptr
         return ptr.GetNumVertices()
 
+    def GetFaceValid(self, idx):
+        """
+        Get if face with index "idx" is valid
+
+        :param idx: int -- Face index to return
+        :returns bool -- valid face
+        """
+        ptr = <_CSPrimPolyhedron*>self.thisptr
+        return ptr.GetFaceValid(idx)
+
     def AddFace(self, verts):
         """ AddFace(verts)
 
@@ -1158,14 +1182,10 @@ cdef class CSPrimPolyhedron(CSPrimitives):
         The vertices have to be added already.
         Currently only triangle faces are possible.
 
-        :params verts: (N,) array -- Face with N vericies (currently N=3!)
+        :params verts: (N,) array -- Face with N vericies
         """
-        assert len(verts)==3, 'AddFace: currently only triangles allowed as faces'
-        cdef int i_v[3]
-        for n in range(3):
-            i_v[n] = verts[n]
         ptr = <_CSPrimPolyhedron*>self.thisptr
-        ptr.AddFace(len(verts), i_v)
+        ptr.AddFace(verts)
 
     def GetFace(self, idx):
         """ GetFace(idx)
@@ -1176,11 +1196,13 @@ cdef class CSPrimPolyhedron(CSPrimitives):
         :returns: (N,) array -- Vertices array for face with index `idx`
         """
         ptr = <_CSPrimPolyhedron*>self.thisptr
-        assert idx>=0 and idx<ptr.GetNumFaces(), "Error: invalid face index"
+        if idx<0 or idx>=ptr.GetNumFaces():
+            raise Exception("Error: invalid face index")
         cdef int *i_v
         cdef unsigned int numVert=0
         i_v = ptr.GetFace(idx, numVert)
-        assert i_v!=NULL
+        if i_v==NULL:
+            raise Exception("Error: invalid face values")
         face = np.zeros(numVert, np.int32)
         for n in range(numVert):
             face[n] = i_v[n]
