@@ -1,5 +1,6 @@
 /*
-*	Copyright (C) 2008-2025 Thorsten Liebig (Thorsten.Liebig@gmx.de)
+*	Copyright (C) 2008-2012 Thorsten Liebig (Thorsten.Liebig@gmx.de)
+*	Copyright (C) 2023-2025 Gadi Lahav (gadi@rfwithcare.com)
 *
 *	This program is free software: you can redistribute it and/or modify
 *	it under the terms of the GNU Lesser General Public License as published
@@ -97,7 +98,7 @@ public:
 	void SetManualWeights(float * wx, float * wy, float * wz, float * cx, float * cy, float * cz, uint listLength);
 	void ClearManualWeights();
 	std::vector<float> GetManualWeights(uint dir);
-	std::vector<float> GetManualWeightCoors(uint dir);
+	std::vector<float> GetManualWeightCoords(uint dir);
 
 	//! Set the excitation delay
 	void SetDelay(double val);
@@ -129,5 +130,5 @@ protected:
 
 	// Vectors for field weights and their respective coordinates
 	std::vector<float> Weights[3];
-	std::vector<float> WeightCoors[3];
+	std::vector<float> WeightCoords[3];
 };

@@ -56,7 +56,7 @@ public:
 	void SetManualWeights(float * wx, float * wy, float * wz, float * cx, float * cy, float * cz, uint listLength);
 	void ClearManualWeights();
 	std::vector<float> GetManualWeights(uint dir);
-	std::vector<float> GetManualWeightCoors(uint dir);
+	std::vector<float> GetManualWeightCoords(uint dir);
 
 
 	//! Define the probe type (e.g. type=0 for a charge integration, can/must be defined by the user interface) \sa GetProbeType
@@ -93,6 +93,6 @@ protected:
 	double startTime, stopTime;
 
 	std::vector<float> Weights[3];
-	std::vector<float> WeightCoors[3];
+	std::vector<float> WeightCoords[3];
 };
 

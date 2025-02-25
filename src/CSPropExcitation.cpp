@@ -1,5 +1,6 @@
 /*
 *	Copyright (C) 2008-2012 Thorsten Liebig (Thorsten.Liebig@gmx.de)
+*	Copyright (C) 2023-2025 Gadi Lahav (gadi@rfwithcare.com)
 *
 *	This program is free software: you can redistribute it and/or modify
 *	it under the terms of the GNU Lesser General Public License as published
@@ -20,7 +21,23 @@
 #include "CSPropExcitation.h"
 
 CSPropExcitation::CSPropExcitation(ParameterSet* paraSet,unsigned int number) : CSProperties(paraSet) {Type=EXCITATION;Init();uiNumber=number;}
-CSPropExcitation::CSPropExcitation(CSProperties* prop) : CSProperties(prop) {Type=EXCITATION;Init();}
+CSPropExcitation::CSPropExcitation(CSPropExcitation* prop, bool copyPrim) : CSProperties(prop,copyPrim)
+{
+	Type=EXCITATION;
+	Init();
+	uiNumber=prop->uiNumber;
+	iExcitType=prop->iExcitType;
+	m_enabled=prop->m_enabled;
+	coordInputType=prop->coordInputType;
+	m_Frequency.Copy(&prop->m_Frequency);
+	Delay.Copy(&prop->Delay);
+	for (unsigned int i=0;i<3;++i)
+	{
+		ActiveDir[i]=prop->ActiveDir[i];
+		Excitation[i].Copy(&prop->Excitation[i]);
+		WeightFct[i].Copy(&prop->WeightFct[i]);
+	}
+}
 CSPropExcitation::CSPropExcitation(unsigned int ID, ParameterSet* paraSet) : CSProperties(ID,paraSet) {Type=EXCITATION;Init();}
 CSPropExcitation::~CSPropExcitation() {}
 
@@ -115,9 +132,9 @@ double CSPropExcitation::GetWeightedExcitation(int ny, const double* coords)
 		// Check all the coordinates within this excitation to see which is the closest.
 		for (uint coorIdx = 0 ; coorIdx < Weights[0].size() ; coorIdx++)
 		{
-			dr = sqrtf(	powf(coords[0] - WeightCoors[0].at(coorIdx),2.0f) +
-						powf(coords[1] - WeightCoors[1].at(coorIdx),2.0f) +
-						powf(coords[2] - WeightCoors[2].at(coorIdx),2.0f));
+			dr = sqrtf(	powf(coords[0] - WeightCoords[0].at(coorIdx),2.0f) +
+						powf(coords[1] - WeightCoords[1].at(coorIdx),2.0f) +
+						powf(coords[2] - WeightCoords[2].at(coorIdx),2.0f));
 
 			if (dr < minDr)
 			{
@@ -125,17 +142,6 @@ double CSPropExcitation::GetWeightedExcitation(int ny, const double* coords)
 				minIdx = coorIdx;
 			}
 		}
-
-//		printf("(%.4f,%.4f,%.4f):E%d(%.4f,%.4f,%.4f)=%.10f*%f\n",
-//					coords[0],
-//					coords[1],
-//					coords[2],
-//					WeightCoors[0].at(minIdx),
-//					WeightCoors[1].at(minIdx),
-//					WeightCoors[2].at(minIdx),
-//					ny,
-//					Weights[ny].at(minIdx),
-//					GetExcitation(ny));
 
 		// Return weighted excitation for this coordinate
 		return (Weights[ny].at(minIdx))*GetExcitation(ny);
@@ -165,8 +171,11 @@ void CSPropExcitation::Init()
 {
 	uiNumber=0;
 	iExcitType=1;
+	m_enabled=true;
 	coordInputType=UNDEFINED_CS;
 	m_Frequency.SetValue(0.0);
+	Delay.SetValue(0.0);
+	Delay.SetParameterSet(clParaSet);
 	for (unsigned int i=0;i<3;++i)
 	{
 		ActiveDir[i]=true;
@@ -174,16 +183,13 @@ void CSPropExcitation::Init()
 		Excitation[i].SetParameterSet(clParaSet);
 		WeightFct[i].SetValue(1.0);
 		WeightFct[i].SetParameterSet(coordParaSet);
-		// Change this, pronto...
-		Delay.SetValue(0.0);
-		Delay.SetParameterSet(clParaSet);
 	}
 
 	// Clear all 6 vectors of manual weighting
 	for (uint dirIdx = 0 ; dirIdx < 3 ; dirIdx++)
 	{
 		Weights[dirIdx].clear();
-		WeightCoors[dirIdx].clear();
+		WeightCoords[dirIdx].clear();
 	}
 }
 
@@ -204,16 +210,16 @@ void CSPropExcitation::SetManualWeights(float * wx,float * wy, float * wz, float
 	for (uint dirIdx = 0 ; dirIdx < 3 ; dirIdx++)
 	{
 		Weights[dirIdx].clear();
-		WeightCoors[dirIdx].clear();
+		WeightCoords[dirIdx].clear();
 	}
 
 	Weights[0].insert(Weights[0].end(),wx,&wx[listLength]);
 	Weights[1].insert(Weights[1].end(),wy,&wy[listLength]);
 	Weights[2].insert(Weights[2].end(),wz,&wz[listLength]);
 
-	WeightCoors[0].insert(WeightCoors[0].end(),cx,&cx[listLength]);
-	WeightCoors[1].insert(WeightCoors[1].end(),cy,&cy[listLength]);
-	WeightCoors[2].insert(WeightCoors[2].end(),cz,&cz[listLength]);
+	WeightCoords[0].insert(WeightCoords[0].end(),cx,&cx[listLength]);
+	WeightCoords[1].insert(WeightCoords[1].end(),cy,&cy[listLength]);
+	WeightCoords[2].insert(WeightCoords[2].end(),cz,&cz[listLength]);
 
 }
 
@@ -222,7 +228,7 @@ void CSPropExcitation::ClearManualWeights()
 	for (uint dirIdx = 0 ; dirIdx < 3 ; dirIdx++)
 	{
 		Weights[dirIdx].clear();
-		WeightCoors[dirIdx].clear();
+		WeightCoords[dirIdx].clear();
 	}
 }
 
@@ -241,10 +247,10 @@ std::vector<float> CSPropExcitation::GetManualWeights(uint dir)
 	}
 }
 
-std::vector<float> CSPropExcitation::GetManualWeightCoors(uint dir)
+std::vector<float> CSPropExcitation::GetManualWeightCoords(uint dir)
 {
 	if (dir < 3)
-		return WeightCoors[dir];
+		return WeightCoords[dir];
 	else
 	{
 		std::stringstream stream;

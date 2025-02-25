@@ -19,16 +19,9 @@
 
 #include "CSPropProbeBox.h"
 
-CSPropProbeBox::CSPropProbeBox(ParameterSet* paraSet) : CSProperties(paraSet) {Type=PROBEBOX; Init();}
-
-CSPropProbeBox::CSPropProbeBox(CSProperties* prop) : CSProperties(prop) {Type=PROBEBOX; Init();}
-
-CSPropProbeBox::CSPropProbeBox(unsigned int ID, ParameterSet* paraSet) : CSProperties(ID,paraSet) {Type=PROBEBOX; Init();}
-
-CSPropProbeBox::~CSPropProbeBox() {}
-
-void CSPropProbeBox::Init()
+CSPropProbeBox::CSPropProbeBox(ParameterSet* paraSet) : CSProperties(paraSet)
 {
+	Type=PROBEBOX;
 	uiNumber=0;
 	m_NormDir=-1;
 	ProbeType=0;
@@ -40,9 +33,47 @@ void CSPropProbeBox::Init()
 	for (uint dirIdx = 0 ; dirIdx < 3 ; dirIdx++)
 	{
 		Weights[dirIdx].clear();
-		WeightCoors[dirIdx].clear();
+		WeightCoords[dirIdx].clear();
 	}
 }
+
+CSPropProbeBox::CSPropProbeBox(CSPropProbeBox* prop, bool copyPrim) : CSProperties(prop, copyPrim)
+{
+	Type=PROBEBOX;
+	uiNumber=prop->uiNumber;
+	m_NormDir=prop->m_NormDir;
+	ProbeType=prop->ProbeType;
+	m_weight=prop->m_weight;
+	startTime=prop->startTime;
+	stopTime=prop->stopTime;
+	m_FD_Samples=prop->m_FD_Samples;
+
+	for (uint dirIdx = 0 ; dirIdx < 3 ; dirIdx++)
+	{
+		Weights[dirIdx] = prop->Weights[dirIdx];
+		WeightCoords[dirIdx] = prop->WeightCoords[dirIdx];
+	}
+}
+
+CSPropProbeBox::CSPropProbeBox(unsigned int ID, ParameterSet* paraSet) : CSProperties(ID,paraSet)
+{
+	Type=PROBEBOX;
+	uiNumber=0;
+	m_NormDir=-1;
+	ProbeType=0;
+	m_weight=1;
+	bVisisble=false;
+	startTime=0;
+	stopTime=0;
+
+	for (uint dirIdx = 0 ; dirIdx < 3 ; dirIdx++)
+	{
+		Weights[dirIdx].clear();
+		WeightCoords[dirIdx].clear();
+	}
+}
+
+CSPropProbeBox::~CSPropProbeBox() {}
 
 void CSPropProbeBox::SetNumber(unsigned int val) {uiNumber=val;}
 unsigned int CSPropProbeBox::GetNumber() {return uiNumber;}
@@ -52,16 +83,16 @@ void CSPropProbeBox::SetManualWeights(float * wx, float * wy, float * wz, float 
 	for (uint dirIdx = 0 ; dirIdx < 3 ; dirIdx++)
 	{
 		Weights[dirIdx].clear();
-		WeightCoors[dirIdx].clear();
+		WeightCoords[dirIdx].clear();
 	}
 
 	Weights[0].insert(Weights[0].end(),wx,&wx[listLength]);
 	Weights[1].insert(Weights[1].end(),wy,&wy[listLength]);
 	Weights[2].insert(Weights[2].end(),wz,&wz[listLength]);
 
-	WeightCoors[0].insert(WeightCoors[0].end(),cx,&cx[listLength]);
-	WeightCoors[1].insert(WeightCoors[1].end(),cy,&cy[listLength]);
-	WeightCoors[2].insert(WeightCoors[2].end(),cz,&cz[listLength]);
+	WeightCoords[0].insert(WeightCoords[0].end(),cx,&cx[listLength]);
+	WeightCoords[1].insert(WeightCoords[1].end(),cy,&cy[listLength]);
+	WeightCoords[2].insert(WeightCoords[2].end(),cz,&cz[listLength]);
 
 }
 
@@ -80,10 +111,10 @@ std::vector<float> CSPropProbeBox::GetManualWeights(uint dir)
 	}
 }
 
-std::vector<float> CSPropProbeBox::GetManualWeightCoors(uint dir)
+std::vector<float> CSPropProbeBox::GetManualWeightCoords(uint dir)
 {
 	if (dir < 3)
-		return WeightCoors[dir];
+		return WeightCoords[dir];
 	else
 	{
 		std::stringstream stream;
@@ -100,7 +131,7 @@ void CSPropProbeBox::ClearManualWeights()
 	for (uint dirIdx = 0 ; dirIdx < 3 ; dirIdx++)
 	{
 		Weights[dirIdx].clear();
-		WeightCoors[dirIdx].clear();
+		WeightCoords[dirIdx].clear();
 	}
 }
 
