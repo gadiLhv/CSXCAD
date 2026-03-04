@@ -89,6 +89,8 @@ cdef class CSProperties:
             prop = CSPropDebyeMaterial(pset, no_init=no_init, **kw)
         elif p_type == ABSORBING_BC:
             prop = CSPropAbsorbingBC(pset, no_init=no_init, **kw)
+        elif p_type == MODE_ABSORB:
+            prop = CSPropModeAbsorb(pset, no_init=no_init, **kw)
 
         return prop
 
@@ -125,7 +127,9 @@ cdef class CSProperties:
             prop = CSPropDebyeMaterial(pset, no_init=no_init, **kw)
         elif type_str=='AbsorbingBC':
             prop = CSPropAbsorbingBC(pset, no_init=no_init, **kw)
-        
+        elif type_str=='ModeAbsorb':
+            prop = CSPropModeAbsorb(pset, no_init=no_init, **kw)
+
         return prop
 
     @staticmethod
@@ -743,7 +747,58 @@ cdef class CSPropAbsorbingBC(CSProperties):
     
     def GetAbsorbingBoundaryType(self):
         return (<_CSPropAbsorbingBC*>self.thisptr).GetAbsorbingBoundaryType()
-    
+
+###############################################################################
+cdef class CSPropModeAbsorb(CSProperties):
+    """
+    Mode-matched waveguide port absorber.
+
+    Subtracts the mode-matched field component at each timestep to absorb
+    a specific waveguide mode on both E and H fields.
+
+    :param NormalSignPositive: bool   -- True if normal points in positive axis direction.
+    :param EModeFileName: str         -- Path to CSV file defining the E-field mode pattern.
+    :param HModeFileName: str         -- Path to CSV file defining the H-field mode pattern.
+    """
+    def __init__(self, ParameterSet pset, *args, no_init=False, **kw):
+        if no_init:
+            self.thisptr = NULL
+            return
+        if not self.thisptr:
+            self.thisptr = <_CSProperties*> new _CSPropModeAbsorb(pset.thisptr)
+
+        for k in kw:
+            if k=='NormalSignPositive':
+                self.SetNormalSignPositive(kw[k])
+            elif k=='EModeFileName':
+                self.SetEModeFileName(kw[k])
+            elif k=='HModeFileName':
+                self.SetHModeFileName(kw[k])
+
+        for k in ['NormalSignPositive', 'EModeFileName', 'HModeFileName']:
+            if k in kw:
+                del kw[k]
+
+        super(CSPropModeAbsorb, self).__init__(pset, *args, **kw)
+
+    def SetNormalSignPositive(self, val):
+        (<_CSPropModeAbsorb*>self.thisptr).SetNormalSignPositive(val)
+
+    def GetNormalSignPositive(self):
+        return (<_CSPropModeAbsorb*>self.thisptr).GetNormalSignPositive()
+
+    def SetEModeFileName(self, val):
+        (<_CSPropModeAbsorb*>self.thisptr).SetEModeFileName(val.encode('UTF-8'))
+
+    def GetEModeFileName(self):
+        return (<_CSPropModeAbsorb*>self.thisptr).GetEModeFileName().decode('UTF-8')
+
+    def SetHModeFileName(self, val):
+        (<_CSPropModeAbsorb*>self.thisptr).SetHModeFileName(val.encode('UTF-8'))
+
+    def GetHModeFileName(self):
+        return (<_CSPropModeAbsorb*>self.thisptr).GetHModeFileName().decode('UTF-8')
+
 ###############################################################################
 cdef class CSPropLumpedElement(CSProperties):
     """

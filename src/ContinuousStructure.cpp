@@ -47,6 +47,7 @@
 #include "CSPropDumpBox.h"
 #include "CSPropResBox.h"
 #include "CSPropAbsorbingBC.h"
+#include "CSPropModeAbsorb.h"
 
 #include "tinyxml.h"
 
@@ -555,7 +556,8 @@ const char* ContinuousStructure::ReadFromXML(TiXmlNode* rootNode)
 		else if (strcmp(cProp,"ResBox")==0) newProp = new CSPropResBox(clParaSet);
 		else if (strcmp(cProp,"DumpBox")==0) newProp = new CSPropDumpBox(clParaSet);
 		else if (strcmp(cProp,"AbsorbingBC")==0) newProp = new CSPropAbsorbingBC(clParaSet);
-		
+		else if (strcmp(cProp,"ModeAbsorb")==0) newProp = new CSPropModeAbsorb(clParaSet);
+
 		else
 		{
 			std::cerr << "ContinuousStructure::ReadFromXML: Property with type: " << cProp << " is unknown... " << std::endl;

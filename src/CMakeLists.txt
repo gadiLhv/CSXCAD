@@ -34,6 +34,7 @@ set( PUB_HEADERS
   CSPropDiscMaterial.h
   CSPropLumpedElement.h
   CSPropAbsorbingBC.h
+  CSPropModeAbsorb.h
   CSPropMetal.h
   CSPropConductingSheet.h
   CSPropExcitation.h
@@ -76,6 +77,7 @@ set(SOURCES
   CSPropDiscMaterial.cpp
   CSPropLumpedElement.cpp
   CSPropAbsorbingBC.cpp
+  CSPropModeAbsorb.cpp
   CSPropMetal.cpp
   CSPropConductingSheet.cpp
   CSPropExcitation.cpp
