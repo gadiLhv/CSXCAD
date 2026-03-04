@@ -156,6 +156,8 @@ cdef extern from "CSXCAD/CSPropModeAbsorb.h":
         string GetEModeFileName()
         void SetHModeFileName(string fileName)
         string GetHModeFileName()
+        void SetWaveImpedance(double val)
+        double GetWaveImpedance()
 
 cdef class CSPropModeAbsorb(CSProperties):
     pass

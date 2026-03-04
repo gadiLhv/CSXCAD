@@ -27,6 +27,7 @@ CSPropModeAbsorb::CSPropModeAbsorb(CSPropModeAbsorb* prop, bool copyPrim) : CSPr
 	m_EModeFileName = prop->m_EModeFileName;
 	m_HModeFileName = prop->m_HModeFileName;
 	NormSignPositive = prop->NormSignPositive;
+	m_ZWave = prop->m_ZWave;
 }
 
 CSPropModeAbsorb::CSPropModeAbsorb(unsigned int ID, ParameterSet* paraSet) : CSProperties(ID, paraSet) {Type = MODE_ABSORB; Init();}
@@ -36,6 +37,7 @@ CSPropModeAbsorb::~CSPropModeAbsorb() {}
 void CSPropModeAbsorb::Init()
 {
 	NormSignPositive = true;
+	m_ZWave = 376.73;  // free-space wave impedance default
 	m_EModeFileName.clear();
 	m_HModeFileName.clear();
 }
@@ -52,6 +54,7 @@ bool CSPropModeAbsorb::Write2XML(TiXmlNode& root, bool parameterised, bool spars
 	if (prop == NULL) return false;
 
 	prop->SetAttribute("NormalSignPositive", (int)NormSignPositive);
+	prop->SetDoubleAttribute("WaveImpedance", m_ZWave);
 	if (!m_EModeFileName.empty())
 		prop->SetAttribute("EModeFileName", m_EModeFileName.c_str());
 	if (!m_HModeFileName.empty())
@@ -70,6 +73,12 @@ bool CSPropModeAbsorb::ReadFromXML(TiXmlNode &root)
 	{
 		std::cerr << "CSPropModeAbsorb::ReadFromXML: Warning: Failed to read normal sign. Setting to true" << std::endl;
 		NormSignPositive = true;
+	}
+
+	if (prop->QueryDoubleAttribute("WaveImpedance", &m_ZWave) != TIXML_SUCCESS)
+	{
+		std::cerr << "CSPropModeAbsorb::ReadFromXML: Warning: Failed to read wave impedance. Using free-space default." << std::endl;
+		m_ZWave = 376.73;
 	}
 
 	const char* attr = NULL;
@@ -93,6 +102,7 @@ void CSPropModeAbsorb::ShowPropertyStatus(std::ostream& stream)
 	CSProperties::ShowPropertyStatus(stream);
 	stream << " --- Mode Absorb Properties --- " << std::endl;
 	stream << "  Normal Sign Positive: " << (NormSignPositive ? "true" : "false") << std::endl;
+	stream << "  Wave Impedance: " << m_ZWave << " Ohm" << std::endl;
 	stream << "  E-mode file: " << m_EModeFileName << std::endl;
 	stream << "  H-mode file: " << m_HModeFileName << std::endl;
 }

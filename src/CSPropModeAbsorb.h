@@ -46,6 +46,9 @@ public:
 	void SetNormalSignPositive(bool val) {NormSignPositive = val;}
 	bool GetNormalSignPositive() const {return NormSignPositive;}
 
+	void SetWaveImpedance(double val) {m_ZWave = val;}
+	double GetWaveImpedance() const {return m_ZWave;}
+
 	virtual bool Update(std::string *ErrStr = NULL);
 	virtual bool Write2XML(TiXmlNode& root, bool parameterised = true, bool sparse = false);
 	virtual bool ReadFromXML(TiXmlNode &root);
@@ -55,4 +58,5 @@ protected:
 	std::string m_EModeFileName;
 	std::string m_HModeFileName;
 	bool        NormSignPositive;
+	double      m_ZWave;
 };

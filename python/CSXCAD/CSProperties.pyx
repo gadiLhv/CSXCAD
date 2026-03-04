@@ -759,6 +759,7 @@ cdef class CSPropModeAbsorb(CSProperties):
     :param NormalSignPositive: bool   -- True if normal points in positive axis direction.
     :param EModeFileName: str         -- Path to CSV file defining the E-field mode pattern.
     :param HModeFileName: str         -- Path to CSV file defining the H-field mode pattern.
+    :param WaveImpedance: float       -- Wave impedance of the medium (Ohm) for directional decomposition.
     """
     def __init__(self, ParameterSet pset, *args, no_init=False, **kw):
         if no_init:
@@ -774,8 +775,10 @@ cdef class CSPropModeAbsorb(CSProperties):
                 self.SetEModeFileName(kw[k])
             elif k=='HModeFileName':
                 self.SetHModeFileName(kw[k])
+            elif k=='WaveImpedance':
+                self.SetWaveImpedance(kw[k])
 
-        for k in ['NormalSignPositive', 'EModeFileName', 'HModeFileName']:
+        for k in ['NormalSignPositive', 'EModeFileName', 'HModeFileName', 'WaveImpedance']:
             if k in kw:
                 del kw[k]
 
@@ -798,6 +801,12 @@ cdef class CSPropModeAbsorb(CSProperties):
 
     def GetHModeFileName(self):
         return (<_CSPropModeAbsorb*>self.thisptr).GetHModeFileName().decode('UTF-8')
+
+    def SetWaveImpedance(self, val):
+        (<_CSPropModeAbsorb*>self.thisptr).SetWaveImpedance(val)
+
+    def GetWaveImpedance(self):
+        return (<_CSPropModeAbsorb*>self.thisptr).GetWaveImpedance()
 
 ###############################################################################
 cdef class CSPropLumpedElement(CSProperties):
