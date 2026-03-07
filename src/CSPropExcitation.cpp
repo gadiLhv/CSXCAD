@@ -36,11 +36,14 @@ CSPropExcitation::CSPropExcitation(CSPropExcitation* prop, bool copyPrim) : CSPr
 	m_ModeFileName = prop->m_ModeFileName;
 	m_ModeFile = prop->m_ModeFile;
 
+	m_AbsorbLayers = prop->m_AbsorbLayers;
+
 	for (unsigned int i=0;i<3;++i)
 	{
 		ActiveDir[i]=prop->ActiveDir[i];
 		Excitation[i].Copy(&prop->Excitation[i]);
 		WeightFct[i].Copy(&prop->WeightFct[i]);
+		m_H_WeightFct[i].Copy(&prop->m_H_WeightFct[i]);
 	}
 }
 CSPropExcitation::CSPropExcitation(unsigned int ID, ParameterSet* paraSet) : CSProperties(ID,paraSet) {Type=EXCITATION;Init();}
@@ -103,6 +106,20 @@ int CSPropExcitation::SetWeightFunction(const std::string fct, int ny)
 
 const std::string CSPropExcitation::GetWeightFunction(int ny) {if ((ny>=0) && (ny<3)) {return WeightFct[ny].GetString();} else return std::string();}
 
+int CSPropExcitation::SetH_WeightFunction(const std::string fct, int ny)
+{
+	if ((ny>=0) && (ny<3))
+		return m_H_WeightFct[ny].SetValue(fct);
+	return 0;
+}
+
+const std::string CSPropExcitation::GetH_WeightFunction(int ny)
+{
+	if ((ny>=0) && (ny<3))
+		return m_H_WeightFct[ny].GetString();
+	return std::string();
+}
+
 void CSPropExcitation::SetModeFileName(std::string fileName)
 {
 	m_ModeFileName = fileName;
@@ -126,7 +143,7 @@ void CSPropExcitation::ClearModeFile()
 
 double CSPropExcitation::GetModeLinInterp2(double x, double y, unsigned int comp)
 {
-	if(comp > 1) 
+	if(comp > 1)
 	{
 		std::cerr << "CSPropExcitation::GetModeLinInterp2: comp should be 0 for X or 1 for Y";
 		return 0;
@@ -138,7 +155,7 @@ double CSPropExcitation::GetModeLinInterp2(double x, double y, unsigned int comp
 
 double CSPropExcitation::GetModeNearestNeighbor(double x, double y, unsigned int comp)
 {
-	if(comp > 1) 
+	if(comp > 1)
 	{
 		std::cerr << "CSPropExcitation::GetModeNearestNeighbor: comp should be 0 for X or 1 for Y";
 		return 0;
@@ -259,7 +276,11 @@ void CSPropExcitation::Init()
 		Excitation[i].SetParameterSet(clParaSet);
 		WeightFct[i].SetValue(1.0);
 		WeightFct[i].SetParameterSet(coordParaSet);
+		m_H_WeightFct[i].SetValue(1.0);
+		m_H_WeightFct[i].SetParameterSet(coordParaSet);
 	}
+
+	m_AbsorbLayers = 0;
 
 	m_FieldSourceIsFile = false;
 	m_ModeFile.ClearData();
@@ -366,6 +387,17 @@ bool CSPropExcitation::Write2XML(TiXmlNode& root, bool parameterised, bool spars
 
 	WriteVectorTerm(PropagationDir,*prop,"PropDir",parameterised);
 
+	if (m_AbsorbLayers > 0)
+	{
+		prop->SetAttribute("AbsorbLayers", m_AbsorbLayers);
+
+		TiXmlElement HWeight("H_Weight");
+		WriteTerm(m_H_WeightFct[0],HWeight,"X",parameterised);
+		WriteTerm(m_H_WeightFct[1],HWeight,"Y",parameterised);
+		WriteTerm(m_H_WeightFct[2],HWeight,"Z",parameterised);
+		prop->InsertEndChild(HWeight);
+	}
+
 	return true;
 }
 
@@ -414,6 +446,20 @@ bool CSPropExcitation::ReadFromXML(TiXmlNode &root)
 
 	ReadVectorTerm(PropagationDir,*prop,"PropDir",0.0);
 
+	m_AbsorbLayers = 0;
+	prop->QueryIntAttribute("AbsorbLayers", &m_AbsorbLayers);
+
+	if (m_AbsorbLayers > 0)
+	{
+		TiXmlElement *hweight = prop->FirstChildElement("H_Weight");
+		if (hweight!=NULL)
+		{
+			ReadTerm(m_H_WeightFct[0],*hweight,"X");
+			ReadTerm(m_H_WeightFct[1],*hweight,"Y");
+			ReadTerm(m_H_WeightFct[2],*hweight,"Z");
+		}
+	}
+
 	return true;
 }
 
@@ -428,4 +474,9 @@ void CSPropExcitation::ShowPropertyStatus(std::ostream& stream)
 	stream << "  Weighting\t: " << WeightFct[0].GetValueString() << ", "  << WeightFct[1].GetValueString() << ", "  << WeightFct[2].GetValueString()  << std::endl;
 	stream << "  Propagation Dir: " << PropagationDir[0].GetValueString() << ", "  << PropagationDir[1].GetValueString() << ", "  << PropagationDir[2].GetValueString()  << std::endl;
 	stream << "  Delay\t\t: " << Delay.GetValueString() << std::endl;
+	if (m_AbsorbLayers > 0)
+	{
+		stream << "  AbsorbLayers: " << m_AbsorbLayers << std::endl;
+		stream << "  H-Weighting\t: " << m_H_WeightFct[0].GetValueString() << ", "  << m_H_WeightFct[1].GetValueString() << ", "  << m_H_WeightFct[2].GetValueString()  << std::endl;
+	}
 }

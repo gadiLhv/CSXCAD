@@ -89,6 +89,8 @@ cdef class CSProperties:
             prop = CSPropDebyeMaterial(pset, no_init=no_init, **kw)
         elif p_type == ABSORBING_BC:
             prop = CSPropAbsorbingBC(pset, no_init=no_init, **kw)
+        elif p_type == MODE_ABSORB:
+            prop = CSPropModeAbsorb(pset, no_init=no_init, **kw)
 
         return prop
 
@@ -125,7 +127,9 @@ cdef class CSProperties:
             prop = CSPropDebyeMaterial(pset, no_init=no_init, **kw)
         elif type_str=='AbsorbingBC':
             prop = CSPropAbsorbingBC(pset, no_init=no_init, **kw)
-        
+        elif type_str=='ModeAbsorb':
+            prop = CSPropModeAbsorb(pset, no_init=no_init, **kw)
+
         return prop
 
     @staticmethod
@@ -743,7 +747,83 @@ cdef class CSPropAbsorbingBC(CSProperties):
     
     def GetAbsorbingBoundaryType(self):
         return (<_CSPropAbsorbingBC*>self.thisptr).GetAbsorbingBoundaryType()
-    
+
+###############################################################################
+cdef class CSPropModeAbsorb(CSProperties):
+    """
+    Mode-matched waveguide port absorber.
+
+    Subtracts the mode-matched field component at each timestep to absorb
+    a specific waveguide mode on both E and H fields.
+
+    :param NormalSignPositive: bool   -- True if normal points in positive axis direction.
+    :param EModeFileName: str         -- Path to CSV file defining the E-field mode pattern.
+    :param HModeFileName: str         -- Path to CSV file defining the H-field mode pattern.
+    :param WaveImpedance: float       -- Wave impedance of the medium (Ohm) for directional decomposition.
+    """
+    def __init__(self, ParameterSet pset, *args, no_init=False, **kw):
+        if no_init:
+            self.thisptr = NULL
+            return
+        if not self.thisptr:
+            self.thisptr = <_CSProperties*> new _CSPropModeAbsorb(pset.thisptr)
+
+        for k in kw:
+            if k=='NormalSignPositive':
+                self.SetNormalSignPositive(kw[k])
+            elif k=='EModeFileName':
+                self.SetEModeFileName(kw[k])
+            elif k=='HModeFileName':
+                self.SetHModeFileName(kw[k])
+            elif k=='WaveImpedance':
+                self.SetWaveImpedance(kw[k])
+            elif k=='UseModalFDTD':
+                self.SetUseModalFDTD(kw[k])
+            elif k=='N1D':
+                self.SetN1D(kw[k])
+
+        for k in ['NormalSignPositive', 'EModeFileName', 'HModeFileName', 'WaveImpedance', 'UseModalFDTD', 'N1D']:
+            if k in kw:
+                del kw[k]
+
+        super(CSPropModeAbsorb, self).__init__(pset, *args, **kw)
+
+    def SetNormalSignPositive(self, val):
+        (<_CSPropModeAbsorb*>self.thisptr).SetNormalSignPositive(val)
+
+    def GetNormalSignPositive(self):
+        return (<_CSPropModeAbsorb*>self.thisptr).GetNormalSignPositive()
+
+    def SetEModeFileName(self, val):
+        (<_CSPropModeAbsorb*>self.thisptr).SetEModeFileName(val.encode('UTF-8'))
+
+    def GetEModeFileName(self):
+        return (<_CSPropModeAbsorb*>self.thisptr).GetEModeFileName().decode('UTF-8')
+
+    def SetHModeFileName(self, val):
+        (<_CSPropModeAbsorb*>self.thisptr).SetHModeFileName(val.encode('UTF-8'))
+
+    def GetHModeFileName(self):
+        return (<_CSPropModeAbsorb*>self.thisptr).GetHModeFileName().decode('UTF-8')
+
+    def SetWaveImpedance(self, val):
+        (<_CSPropModeAbsorb*>self.thisptr).SetWaveImpedance(val)
+
+    def GetWaveImpedance(self):
+        return (<_CSPropModeAbsorb*>self.thisptr).GetWaveImpedance()
+
+    def SetUseModalFDTD(self, val):
+        (<_CSPropModeAbsorb*>self.thisptr).SetUseModalFDTD(val)
+
+    def GetUseModalFDTD(self):
+        return (<_CSPropModeAbsorb*>self.thisptr).GetUseModalFDTD()
+
+    def SetN1D(self, val):
+        (<_CSPropModeAbsorb*>self.thisptr).SetN1D(val)
+
+    def GetN1D(self):
+        return (<_CSPropModeAbsorb*>self.thisptr).GetN1D()
+
 ###############################################################################
 cdef class CSPropLumpedElement(CSProperties):
     """
@@ -1111,6 +1191,48 @@ cdef class CSPropExcitation(CSProperties):
         """ GetDelay()
         """
         return (<_CSPropExcitation*>self.thisptr).GetDelay()
+
+    def SetAbsorbLayers(self, val):
+        """ SetAbsorbLayers(val)
+
+        Set the number of absorber layers (0=disabled, 1 or 2).
+
+        :param val: int -- number of absorber layers
+        """
+        (<_CSPropExcitation*>self.thisptr).SetAbsorbLayers(val)
+
+    def GetAbsorbLayers(self):
+        """ GetAbsorbLayers()
+
+        Get the number of absorber layers.
+
+        :returns: int -- number of absorber layers
+        """
+        return (<_CSPropExcitation*>self.thisptr).GetAbsorbLayers()
+
+    def SetHWeightFunction(self, func):
+        """SetHWeightFunction(func)
+
+        Set the H-field weighting function for the absorber mode matching.
+
+        :param func: list of 3 strings -- H-field weight functions
+        """
+        assert len(func)==3, 'Error, H-field weighting function must be an array of length 3'
+        for n in range(3):
+            assert type(func[n]) is str, 'Error, H-field weighting function must be a string'
+            (<_CSPropExcitation*>self.thisptr).SetH_WeightFunction(func[n].encode('UTF-8'), n)
+
+    def GetHWeightFunction(self):
+        """GetHWeightFunction()
+
+        Get the H-field weighting function for the absorber mode matching.
+
+        :returns: 3 element list of strings
+        """
+        func = [None]*3
+        for n in range(3):
+            func[n] = (<_CSPropExcitation*>self.thisptr).GetH_WeightFunction(n).decode('UTF-8')
+        return func
 
 ###############################################################################
 cdef class CSPropProbeBox(CSProperties):

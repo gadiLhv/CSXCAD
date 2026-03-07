@@ -87,7 +87,7 @@ public:
 	void		SetModeFileName(std::string fileName);
 	std::string GetModeFileName();
 	bool		GetFieldSourceIsFile() {return m_FieldSourceIsFile;};
-	
+
 	bool 		ParseModeFile();
 	void		ClearModeFile();
 
@@ -115,6 +115,16 @@ public:
 	//! Get the excitation delay as a string
 	const std::string GetDelayString();
 
+	//! Set the number of absorber layers (0=disabled, 1 or 2)
+	void SetAbsorbLayers(int val) {m_AbsorbLayers=val;}
+	//! Get the number of absorber layers
+	int GetAbsorbLayers() const {return m_AbsorbLayers;}
+
+	//! Set H-field weight function for absorber mode matching
+	int SetH_WeightFunction(const std::string fct, int ny);
+	//! Get H-field weight function for absorber mode matching
+	const std::string GetH_WeightFunction(int ny);
+
 	virtual void Init();
 	virtual bool Update(std::string *ErrStr=NULL);
 
@@ -134,6 +144,8 @@ protected:
 	ParameterScalar PropagationDir[3];	// direction of propagation (should be a unit vector), needed for plane wave excitations
 	ParameterScalar Delay;				// excitation delay only, for time-domain solver e.g. FDTD
 
+	int m_AbsorbLayers;					// number of absorber layers (0=disabled)
+	ParameterScalar m_H_WeightFct[3];	// H-field weight functions for absorber mode matching
 
 	bool 				m_FieldSourceIsFile;	// In case this should be loaded from a file, this will be set to "true"
 	std::string 		m_ModeFileName;			// Name of the mode file
