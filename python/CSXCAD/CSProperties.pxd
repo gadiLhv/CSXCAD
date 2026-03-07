@@ -41,6 +41,7 @@ cdef extern from "CSXCAD/CSProperties.h":
         LUMPED_ELEMENT     "CSProperties::LUMPED_ELEMENT"
         CONDUCTINGSHEET    "CSProperties::CONDUCTINGSHEET"
         ABSORBING_BC       "CSProperties::ABSORBING_BC"
+        MODE_ABSORB        "CSProperties::MODE_ABSORB"
 
 cdef extern from "CSXCAD/CSProperties.h":
     ctypedef struct RGBa:
@@ -146,6 +147,26 @@ cdef class CSPropAbsorbingBC(CSProperties):
     pass
 
 ##############################################################################
+cdef extern from "CSXCAD/CSPropModeAbsorb.h":
+    cdef cppclass _CSPropModeAbsorb "CSPropModeAbsorb" (_CSProperties):
+        _CSPropModeAbsorb(_ParameterSet*) except +
+        void SetNormalSignPositive(bool val)
+        bool GetNormalSignPositive()
+        void SetEModeFileName(string fileName)
+        string GetEModeFileName()
+        void SetHModeFileName(string fileName)
+        string GetHModeFileName()
+        void SetWaveImpedance(double val)
+        double GetWaveImpedance()
+        void SetUseModalFDTD(bool val)
+        bool GetUseModalFDTD()
+        void SetN1D(unsigned int val)
+        unsigned int GetN1D()
+
+cdef class CSPropModeAbsorb(CSProperties):
+    pass
+
+##############################################################################
 
 cdef extern from "CSXCAD/CSPropLumpedElement.h":
     cpdef enum LEtype "CSPropLumpedElement::LEtype":
@@ -231,6 +252,12 @@ cdef extern from "CSXCAD/CSPropExcitation.h":
 
             void SetDelay(double val)
             double GetDelay()
+
+            void SetAbsorbLayers(int val)
+            int GetAbsorbLayers()
+
+            int SetH_WeightFunction(string fct, int ny)
+            string GetH_WeightFunction(int ny)
 
 cdef class CSPropExcitation(CSProperties):
     pass
