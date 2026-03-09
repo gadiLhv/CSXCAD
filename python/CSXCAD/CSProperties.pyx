@@ -719,8 +719,9 @@ cdef class CSPropAbsorbingBC(CSProperties):
                 self.SetPhaseVelocity(kw[k])
             elif k=='AbsorbingBoundaryType':
                 self.SetAbsorbingBoundaryType(kw[k])
-                
-        for k in ['NormalSignPositive', 'PhaseVelocity', 'AbsorbingBoundaryType']:
+            elif k=='DampingFactor':
+                self.SetDampingFactor(kw[k])
+        for k in ['NormalSignPositive', 'PhaseVelocity', 'AbsorbingBoundaryType','DampingFactor']:
             if k in kw:
                 del kw[k]
                 
@@ -743,6 +744,12 @@ cdef class CSPropAbsorbingBC(CSProperties):
     
     def GetAbsorbingBoundaryType(self):
         return (<_CSPropAbsorbingBC*>self.thisptr).GetAbsorbingBoundaryType()
+    
+    def SetDampingFactor(self, val):
+        (<_CSPropAbsorbingBC*>self.thisptr).SetDampingFactor(val)
+    
+    def GetDampingFactor(self):
+        return (<_CSPropAbsorbingBC*>self.thisptr).GetDampingFactor()
     
 ###############################################################################
 cdef class CSPropLumpedElement(CSProperties):

@@ -136,12 +136,15 @@ cdef extern from "CSXCAD/CSPropAbsorbingBC.h":
         void SetNormalSignPositive(bool val)
         bool GetNormalSignPositive()
         
-        void SetPhaseVelocity(double val)
-        double GetPhaseVelocity()
+        void    SetPhaseVelocity(double val)
+        double  GetPhaseVelocity()
         
         void    SetAbsorbingBoundaryType(ABCtype val)
-        ABCtype  GetAbsorbingBoundaryType()
-            
+        ABCtype GetAbsorbingBoundaryType()
+        
+        void    SetDampingFactor(int val)
+        int     GetDampingFactor()
+        
 cdef class CSPropAbsorbingBC(CSProperties):
     pass
 

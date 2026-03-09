@@ -30,6 +30,8 @@ CSPropAbsorbingBC::CSPropAbsorbingBC(CSPropAbsorbingBC* prop, bool copyPrim) : C
 	NormSignPositive = prop->NormSignPositive;
 	PhaseVelocity.Copy(&prop->PhaseVelocity);
 	AbsorbingBoundaryType = prop->AbsorbingBoundaryType;
+	DampingFactor = prop->DampingFactor;
+	CutoffFreq = prop->CutoffFreq;
 }
 CSPropAbsorbingBC::CSPropAbsorbingBC(unsigned int ID, ParameterSet* paraSet) : CSProperties(ID,paraSet) {Type = ABSORBING_BC; Init();}
 CSPropAbsorbingBC::~CSPropAbsorbingBC()
@@ -41,6 +43,8 @@ void CSPropAbsorbingBC::Init()
 	NormSignPositive = true;
 	PhaseVelocity.SetValue((double)_C0_);
 	AbsorbingBoundaryType = CSPropAbsorbingBC::UNDEFINED;
+	DampingFactor = 0;
+	CutoffFreq = 0;
 }
 
 bool CSPropAbsorbingBC::Update(std::string *ErrStr)
@@ -69,6 +73,28 @@ void CSPropAbsorbingBC::SetPhaseVelocity(double val)
 		PhaseVelocity.SetValue(0);
 	}
 
+}
+
+void CSPropAbsorbingBC::SetDampingFactor(int val)
+{
+	if ((val > 10) || (val < 0))
+	{
+		std::cerr << "CSPropAbsorbingBC::SetDampingFactor: Warning: damping factor needs to be between 0 and 10. Setting to default (0)" << std::endl;
+		val = 0;
+	}
+
+	this->DampingFactor = val;
+}
+
+void CSPropAbsorbingBC::SetCutoffFreq(double val)
+{
+	if (val < 0.0)
+	{
+		std::cerr << "CSPropAbsorbingBC::SetCutoffFreq: Warning: Cutoff frequency needs to be larget than zero. Setting to zero." << std::endl;
+		val = 0.0;
+	}
+
+	this->CutoffFreq = val;
 }
 
 bool CSPropAbsorbingBC::Write2XML(TiXmlNode& root, bool parameterised, bool sparse)

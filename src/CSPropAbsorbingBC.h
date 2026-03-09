@@ -28,9 +28,9 @@ class CSXCAD_EXPORT CSPropAbsorbingBC : public CSProperties
 public:
 	enum ABCtype
 	{
-		UNDEFINED	= 0,
-		MUR_1ST 	= 1,	// Mur's BC, 1st order
-		MUR_1ST_SA 	= 2		// Mur's BC, 1st order, with Super Absorption
+		UNDEFINED		= 0,
+		MUR_1ST 		= 1,	// Mur's BC, 1st order
+		MUR_1ST_SA 		= 2,	// Mur's BC, 1st order, with Super Absorption
 	};
 
 	CSPropAbsorbingBC(ParameterSet* paraSet);
@@ -52,6 +52,11 @@ public:
 	//! Set the phase velocity using a double value
 	void SetPhaseVelocity(double val);
 
+	void SetDampingFactor(int val);
+	int GetDampingFactor() {return DampingFactor;};
+
+	void SetCutoffFreq(double val);
+	double GetDumpingFactor() {return CutoffFreq;};
 	//! Get the phase velocity
 	double GetPhaseVelocity() {return PhaseVelocity.GetValue();}
 	const std::string GetPhaseVelocityTerm() const	{return PhaseVelocity.GetString();}
@@ -71,4 +76,7 @@ protected:
 	bool			NormSignPositive;
 	ParameterScalar	PhaseVelocity;
 	ABCtype			AbsorbingBoundaryType;
+
+	unsigned int	DampingFactor;
+	double			CutoffFreq;
 };
