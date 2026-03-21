@@ -100,7 +100,7 @@ bool CSPropProbeBox::Write2XML(TiXmlNode& root, bool parameterised, bool sparse)
 
 	prop->SetAttribute("Number",(int)uiNumber);
 	if ((m_NormDir>0) && (m_NormDir<3))
-		prop->SetAttribute("NormDir",(int)uiNumber);
+		prop->SetAttribute("NormDir",(int)m_NormDir);
 	prop->SetAttribute("Type",ProbeType);
 	prop->SetAttribute("Weight",m_weight);
 	prop->SetAttribute("StartTime",startTime);

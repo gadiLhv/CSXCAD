@@ -18,6 +18,7 @@
 #pragma once
 
 #include "CSProperties.h"
+#include "CSPropProbeBox.h"
 
 //! Continuous Structure Absorbing Boundary Condition Sheet Property
 /*!
@@ -30,7 +31,9 @@ public:
 	{
 		UNDEFINED	= 0,
 		MUR_1ST 	= 1,	// Mur's BC, 1st order
-		MUR_1ST_SA 	= 2		// Mur's BC, 1st order, with Super Absorption
+		MUR_1ST_SA 	= 2,	// Mur's BC, 1st order, with Super Absorption
+		MODAL_E		= 3,	// Absorb E field
+		MODAL_H		= 4		// Absorb H field
 	};
 
 	CSPropAbsorbingBC(ParameterSet* paraSet);
@@ -52,6 +55,9 @@ public:
 	//! Set the phase velocity using a double value
 	void SetPhaseVelocity(double val);
 
+	void SetProbeBoxNumber(int val) {probeBoxNumber = val;}
+	int GetProbeBoxNumber() {return probeBoxNumber;}
+
 	//! Get the phase velocity
 	double GetPhaseVelocity() {return PhaseVelocity.GetValue();}
 	const std::string GetPhaseVelocityTerm() const	{return PhaseVelocity.GetString();}
@@ -68,7 +74,12 @@ public:
 
 protected:
 
-	bool			NormSignPositive;
-	ParameterScalar	PhaseVelocity;
-	ABCtype			AbsorbingBoundaryType;
+	bool					NormSignPositive;
+	ParameterScalar			PhaseVelocity;
+	ABCtype					AbsorbingBoundaryType;
+
+	int						probeBoxNumber;
+
+	const CSPropProbeBox*	RefFieldProbe;
+
 };
