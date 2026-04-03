@@ -32,8 +32,7 @@ public:
 		UNDEFINED	= 0,
 		MUR_1ST 	= 1,	// Mur's BC, 1st order
 		MUR_1ST_SA 	= 2,	// Mur's BC, 1st order, with Super Absorption
-		MODAL_E		= 3,	// Absorb E field
-		MODAL_H		= 4		// Absorb H field
+		MODAL		= 3		// Modal absorber - For a single specific mode
 	};
 
 	CSPropAbsorbingBC(ParameterSet* paraSet);
