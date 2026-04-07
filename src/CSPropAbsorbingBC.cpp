@@ -30,6 +30,9 @@ CSPropAbsorbingBC::CSPropAbsorbingBC(CSPropAbsorbingBC* prop, bool copyPrim) : C
 	NormSignPositive = prop->NormSignPositive;
 	PhaseVelocity.Copy(&prop->PhaseVelocity);
 	AbsorbingBoundaryType = prop->AbsorbingBoundaryType;
+	m_EModeFileName = prop->m_EModeFileName;
+	m_HModeFileName = prop->m_HModeFileName;
+	m_WaveImpedance = prop->m_WaveImpedance;
 }
 CSPropAbsorbingBC::CSPropAbsorbingBC(unsigned int ID, ParameterSet* paraSet) : CSProperties(ID,paraSet) {Type = ABSORBING_BC; Init();}
 CSPropAbsorbingBC::~CSPropAbsorbingBC()
@@ -41,6 +44,9 @@ void CSPropAbsorbingBC::Init()
 	NormSignPositive = true;
 	PhaseVelocity.SetValue((double)_C0_);
 	AbsorbingBoundaryType = CSPropAbsorbingBC::UNDEFINED;
+	m_EModeFileName.clear();
+	m_HModeFileName.clear();
+	m_WaveImpedance = 0.0;
 }
 
 bool CSPropAbsorbingBC::Update(std::string *ErrStr)
@@ -84,6 +90,13 @@ bool CSPropAbsorbingBC::Write2XML(TiXmlNode& root, bool parameterised, bool spar
 
 	WriteTerm(PhaseVelocity,*prop,"PhaseVelocity",parameterised);
 
+	if (!m_EModeFileName.empty())
+		prop->SetAttribute("EModeFileName", m_EModeFileName.c_str());
+	if (!m_HModeFileName.empty())
+		prop->SetAttribute("HModeFileName", m_HModeFileName.c_str());
+	if (m_WaveImpedance != 0.0)
+		prop->SetDoubleAttribute("WaveImpedance", m_WaveImpedance);
+
 	return true;
 }
 
@@ -107,6 +120,13 @@ bool CSPropAbsorbingBC::ReadFromXML(TiXmlNode &root)
 	if (prop->QueryIntAttribute("AbsorbingBoundaryType", &i_ABCtype) != TIXML_SUCCESS) i_ABCtype = 0;
 	AbsorbingBoundaryType = (ABCtype)i_ABCtype;
 
+	if (prop->QueryStringAttribute("EModeFileName", &m_EModeFileName) != TIXML_SUCCESS)
+		m_EModeFileName.clear();
+	if (prop->QueryStringAttribute("HModeFileName", &m_HModeFileName) != TIXML_SUCCESS)
+		m_HModeFileName.clear();
+	if (prop->QueryDoubleAttribute("WaveImpedance", &m_WaveImpedance) != TIXML_SUCCESS)
+		m_WaveImpedance = 0.0;
+
 	return true;
 }
 
@@ -127,6 +147,9 @@ void CSPropAbsorbingBC::ShowPropertyStatus(std::ostream& stream)
 		case ABCtype::MUR_1ST_SA:
 			s_BoundaryType = "1st order Mur BC with super-absorption";
 			break;
+		case ABCtype::MODAL:
+			s_BoundaryType = "Modal absorber";
+			break;
 	}
 
 	CSProperties::ShowPropertyStatus(stream);
@@ -134,4 +157,10 @@ void CSPropAbsorbingBC::ShowPropertyStatus(std::ostream& stream)
 	stream << "  Normal Sign Positive: " << s_sign << std::endl;
 	stream << "  Phase velocity: "   << PhaseVelocity.GetValue()/_C0_ << "*C0" << std::endl;
 	stream << "  Absorbing boundary condition type: "   << s_BoundaryType << std::endl;
+	if (!m_EModeFileName.empty())
+		stream << "  E-mode file: " << m_EModeFileName << std::endl;
+	if (!m_HModeFileName.empty())
+		stream << "  H-mode file: " << m_HModeFileName << std::endl;
+	if (m_WaveImpedance != 0.0)
+		stream << "  Wave impedance: " << m_WaveImpedance << " Ohm" << std::endl;
 }

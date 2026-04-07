@@ -127,20 +127,28 @@ cdef extern from "CSXCAD/CSPropAbsorbingBC.h":
         UNDEFINED   "CSPropAbsorbingBC::UNDEFINED"
         MUR_1ST     "CSPropAbsorbingBC::MUR_1ST"
         MUR_1ST_SA  "CSPropAbsorbingBC::MUR_1ST_SA"
+        MODAL       "CSPropAbsorbingBC::MODAL"
 
 cdef extern from "CSXCAD/CSPropAbsorbingBC.h":
     cdef cppclass _CSPropAbsorbingBC "CSPropAbsorbingBC" (_CSProperties):
         _CSPropAbsorbingBC(_ParameterSet*) except +
-            
-        # Insert methods here:
+
         void SetNormalSignPositive(bool val)
         bool GetNormalSignPositive()
-        
+
         void SetPhaseVelocity(double val)
         double GetPhaseVelocity()
-        
+
         void    SetAbsorbingBoundaryType(ABCtype val)
         ABCtype  GetAbsorbingBoundaryType()
+
+        void    SetEModeFileName(string fileName)
+        string  GetEModeFileName()
+        void    SetHModeFileName(string fileName)
+        string  GetHModeFileName()
+        bool    GetFieldSourceIsFile()
+        void    SetWaveImpedance(double Zw)
+        double  GetWaveImpedance()
             
 cdef class CSPropAbsorbingBC(CSProperties):
     pass
