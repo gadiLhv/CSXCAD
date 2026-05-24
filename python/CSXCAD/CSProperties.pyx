@@ -696,51 +696,60 @@ cdef class CSPropAbsorbingBC(CSProperties):
     Local absorbing Boundary Conditions
 
 
-    At this point this property only supports 1st order Mur, and an addition of 
-    "superabsorption" to increase ~10dB absorption efficiency.
-    In the future, the plan is to support modal absorption, and multi-modal 
-    absorption.
+    Supports 1st order Mur, 1st order Mur with "superabsorption" (~10dB extra
+    absorption), and Surface Impedance Absorbing Boundary Condition (SIBC,
+    Leontovich). In the future, the plan is to support modal absorption, and
+    multi-modal absorption.
 
     :param NormalSignPositive: bool             -- Positive if the normal direction will be in the positive direction of the axis, or negative.
-    :param PhaseVelocity: double                -- The phase velocity of the expected propagating mode\signal. If not set, will set 0.    
-    :param AbsorbingBoundaryType: enum ABCtype  -- 'ABCtype.MUR_1ST_1PV', 'ABCtype.MUR_1ST_1PV_SA' or 'ABCtype.UNDEFINED'. The latter will result in an error
+    :param PhaseVelocity: double                -- The phase velocity of the expected propagating mode\signal. If not set, will set 0.
+    :param SurfaceImpedance: double             -- (SIBC only) surface impedance Z_s in Ohm. Default 0: per-location Z = sqrt(mu/eps) is derived from the local material. Negative values are rejected.
+    :param AbsorbingBoundaryType: enum ABCtype  -- 'ABCtype.MUR_1ST', 'ABCtype.MUR_1ST_SA', 'ABCtype.SIBC' or 'ABCtype.UNDEFINED'. The latter will result in an error.
     """
     def __init__(self, ParameterSet pset, *args, no_init=False, **kw):
         if no_init:
             self.thisptr = NULL
-            return 
+            return
         if not self.thisptr:
             self.thisptr = <_CSProperties*> new _CSPropAbsorbingBC(pset.thisptr)
-        
+
         for k in kw:
             if k=='NormalSignPositive':
                 self.SetNormalSignPositive(kw[k])
             elif k=='PhaseVelocity':
                 self.SetPhaseVelocity(kw[k])
+            elif k=='SurfaceImpedance':
+                self.SetSurfaceImpedance(kw[k])
             elif k=='AbsorbingBoundaryType':
                 self.SetAbsorbingBoundaryType(kw[k])
-                
-        for k in ['NormalSignPositive', 'PhaseVelocity', 'AbsorbingBoundaryType']:
+
+        for k in ['NormalSignPositive', 'PhaseVelocity', 'SurfaceImpedance', 'AbsorbingBoundaryType']:
             if k in kw:
                 del kw[k]
-                
+
         super(CSPropAbsorbingBC, self).__init__(pset, *args, **kw)
-        
+
     def SetNormalSignPositive(self,val):
         (<_CSPropAbsorbingBC*>self.thisptr).SetNormalSignPositive(val)
-        
+
     def GetNormalSignPositive(self):
         return (<_CSPropAbsorbingBC*>self.thisptr).GetNormalSignPositive()
-        
+
     def SetPhaseVelocity(self,val):
         (<_CSPropAbsorbingBC*>self.thisptr).SetPhaseVelocity(val)
-    
+
     def GetPhaseVelocity(self):
         return (<_CSPropAbsorbingBC*>self.thisptr).GetPhaseVelocity()
-    
+
+    def SetSurfaceImpedance(self,val):
+        (<_CSPropAbsorbingBC*>self.thisptr).SetSurfaceImpedance(val)
+
+    def GetSurfaceImpedance(self):
+        return (<_CSPropAbsorbingBC*>self.thisptr).GetSurfaceImpedance()
+
     def SetAbsorbingBoundaryType(self,val):
         (<_CSPropAbsorbingBC*>self.thisptr).SetAbsorbingBoundaryType(val)
-    
+
     def GetAbsorbingBoundaryType(self):
         return (<_CSPropAbsorbingBC*>self.thisptr).GetAbsorbingBoundaryType()
     

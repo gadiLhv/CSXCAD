@@ -30,7 +30,8 @@ public:
 	{
 		UNDEFINED	= 0,
 		MUR_1ST 	= 1,	// Mur's BC, 1st order
-		MUR_1ST_SA 	= 2		// Mur's BC, 1st order, with Super Absorption
+		MUR_1ST_SA 	= 2,	// Mur's BC, 1st order, with Super Absorption
+		SIBC		= 3		// Surface Impedance Absorbing Boundary Condition (Leontovich)
 	};
 
 	CSPropAbsorbingBC(ParameterSet* paraSet);
@@ -56,6 +57,13 @@ public:
 	double GetPhaseVelocity() {return PhaseVelocity.GetValue();}
 	const std::string GetPhaseVelocityTerm() const	{return PhaseVelocity.GetString();}
 
+	//! Set the surface impedance (used by SIBC). 0 => derive Z = sqrt(mu/eps) per-location from the local material.
+	void SetSurfaceImpedance(double val);
+
+	//! Get the surface impedance
+	double GetSurfaceImpedance() {return SurfaceImpedance.GetValue();}
+	const std::string GetSurfaceImpedanceTerm() const	{return SurfaceImpedance.GetString();}
+
 	void SetAbsorbingBoundaryType(ABCtype val) {AbsorbingBoundaryType = val;};
 	ABCtype GetAbsorbingBoundaryType() {return AbsorbingBoundaryType;};
 
@@ -70,5 +78,6 @@ protected:
 
 	bool			NormSignPositive;
 	ParameterScalar	PhaseVelocity;
+	ParameterScalar	SurfaceImpedance;
 	ABCtype			AbsorbingBoundaryType;
 };

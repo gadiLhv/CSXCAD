@@ -29,6 +29,7 @@ CSPropAbsorbingBC::CSPropAbsorbingBC(CSPropAbsorbingBC* prop, bool copyPrim) : C
 
 	NormSignPositive = prop->NormSignPositive;
 	PhaseVelocity.Copy(&prop->PhaseVelocity);
+	SurfaceImpedance.Copy(&prop->SurfaceImpedance);
 	AbsorbingBoundaryType = prop->AbsorbingBoundaryType;
 }
 CSPropAbsorbingBC::CSPropAbsorbingBC(unsigned int ID, ParameterSet* paraSet) : CSProperties(ID,paraSet) {Type = ABSORBING_BC; Init();}
@@ -40,6 +41,7 @@ void CSPropAbsorbingBC::Init()
 {
 	NormSignPositive = true;
 	PhaseVelocity.SetValue((double)_C0_);
+	SurfaceImpedance.SetValue(0.0);
 	AbsorbingBoundaryType = CSPropAbsorbingBC::UNDEFINED;
 }
 
@@ -52,6 +54,16 @@ bool CSPropAbsorbingBC::Update(std::string *ErrStr)
 	{
 		std::stringstream stream;
 		stream << std::endl << "Error in AbsorbingBC-Property PhaseVelocity-Value";
+		ErrStr->append(stream.str());
+		PSErrorCode2Msg(EC,ErrStr);
+	}
+
+	EC = SurfaceImpedance.Evaluate();
+	if (EC != ParameterScalar::PS_NO_ERROR) bOK = false;
+	if ((EC != ParameterScalar::PS_NO_ERROR) && (ErrStr != NULL))
+	{
+		std::stringstream stream;
+		stream << std::endl << "Error in AbsorbingBC-Property SurfaceImpedance-Value";
 		ErrStr->append(stream.str());
 		PSErrorCode2Msg(EC,ErrStr);
 	}
@@ -71,6 +83,17 @@ void CSPropAbsorbingBC::SetPhaseVelocity(double val)
 
 }
 
+void CSPropAbsorbingBC::SetSurfaceImpedance(double val)
+{
+	if (val >= 0)
+		SurfaceImpedance.SetValue(val);
+	else
+	{
+		std::cerr << "CSPropAbsorbingBC::SetSurfaceImpedance: Warning: Unable to set surface impedance smaller than zero. Setting to 0 (use material derived Z)" << std::endl;
+		SurfaceImpedance.SetValue(0);
+	}
+}
+
 bool CSPropAbsorbingBC::Write2XML(TiXmlNode& root, bool parameterised, bool sparse)
 {
 	if (CSProperties::Write2XML(root,parameterised,sparse) == false) return false;
@@ -83,6 +106,7 @@ bool CSPropAbsorbingBC::Write2XML(TiXmlNode& root, bool parameterised, bool spar
 	prop->SetAttribute("AbsorbingBoundaryType",(int)AbsorbingBoundaryType);
 
 	WriteTerm(PhaseVelocity,*prop,"PhaseVelocity",parameterised);
+	WriteTerm(SurfaceImpedance,*prop,"SurfaceImpedance",parameterised);
 
 	return true;
 }
@@ -102,6 +126,9 @@ bool CSPropAbsorbingBC::ReadFromXML(TiXmlNode &root)
 
 	if (ReadTerm(PhaseVelocity,*prop,"PhaseVelocity")==false)
 		std::cerr << "CSPropAbsorbingBC::ReadFromXML: Warning: Failed to read Phase velocity. Set to C0." << std::endl;
+
+	if (ReadTerm(SurfaceImpedance,*prop,"SurfaceImpedance")==false)
+		SurfaceImpedance.SetValue(0.0);
 
 	int i_ABCtype;
 	if (prop->QueryIntAttribute("AbsorbingBoundaryType", &i_ABCtype) != TIXML_SUCCESS) i_ABCtype = 0;
@@ -127,11 +154,18 @@ void CSPropAbsorbingBC::ShowPropertyStatus(std::ostream& stream)
 		case ABCtype::MUR_1ST_SA:
 			s_BoundaryType = "1st order Mur BC with super-absorption";
 			break;
+		case ABCtype::SIBC:
+			s_BoundaryType = "Surface Impedance Absorbing BC (Leontovich)";
+			break;
 	}
 
 	CSProperties::ShowPropertyStatus(stream);
 	stream << " --- Absorbing BC Properties --- " << std::endl;
 	stream << "  Normal Sign Positive: " << s_sign << std::endl;
 	stream << "  Phase velocity: "   << PhaseVelocity.GetValue()/_C0_ << "*C0" << std::endl;
+	if (SurfaceImpedance.GetValue() > 0)
+		stream << "  Surface impedance: " << SurfaceImpedance.GetValue() << " Ohm" << std::endl;
+	else
+		stream << "  Surface impedance: derived from local material" << std::endl;
 	stream << "  Absorbing boundary condition type: "   << s_BoundaryType << std::endl;
 }

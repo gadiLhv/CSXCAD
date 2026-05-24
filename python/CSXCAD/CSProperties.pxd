@@ -127,18 +127,22 @@ cdef extern from "CSXCAD/CSPropAbsorbingBC.h":
         UNDEFINED   "CSPropAbsorbingBC::UNDEFINED"
         MUR_1ST     "CSPropAbsorbingBC::MUR_1ST"
         MUR_1ST_SA  "CSPropAbsorbingBC::MUR_1ST_SA"
+        SIBC        "CSPropAbsorbingBC::SIBC"
 
 cdef extern from "CSXCAD/CSPropAbsorbingBC.h":
     cdef cppclass _CSPropAbsorbingBC "CSPropAbsorbingBC" (_CSProperties):
         _CSPropAbsorbingBC(_ParameterSet*) except +
-            
+
         # Insert methods here:
         void SetNormalSignPositive(bool val)
         bool GetNormalSignPositive()
-        
+
         void SetPhaseVelocity(double val)
         double GetPhaseVelocity()
-        
+
+        void SetSurfaceImpedance(double val)
+        double GetSurfaceImpedance()
+
         void    SetAbsorbingBoundaryType(ABCtype val)
         ABCtype  GetAbsorbingBoundaryType()
             
