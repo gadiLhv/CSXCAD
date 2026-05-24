@@ -46,7 +46,10 @@ void CSPropAbsorbingBC::Init()
 	AbsorbingBoundaryType = CSPropAbsorbingBC::UNDEFINED;
 	m_EModeFileName.clear();
 	m_HModeFileName.clear();
-	m_WaveImpedance = 0.0;
+	// Sentinel: any value < 0 means "not set by the user". MODAL absorbers
+	// require the caller to provide a positive wave impedance; setup will
+	// abort if this is left negative.
+	m_WaveImpedance = -1.0;
 }
 
 bool CSPropAbsorbingBC::Update(std::string *ErrStr)
@@ -94,7 +97,7 @@ bool CSPropAbsorbingBC::Write2XML(TiXmlNode& root, bool parameterised, bool spar
 		prop->SetAttribute("EModeFileName", m_EModeFileName.c_str());
 	if (!m_HModeFileName.empty())
 		prop->SetAttribute("HModeFileName", m_HModeFileName.c_str());
-	if (m_WaveImpedance != 0.0)
+	if (m_WaveImpedance > 0.0)
 		prop->SetDoubleAttribute("WaveImpedance", m_WaveImpedance);
 
 	return true;
@@ -125,7 +128,7 @@ bool CSPropAbsorbingBC::ReadFromXML(TiXmlNode &root)
 	if (prop->QueryStringAttribute("HModeFileName", &m_HModeFileName) != TIXML_SUCCESS)
 		m_HModeFileName.clear();
 	if (prop->QueryDoubleAttribute("WaveImpedance", &m_WaveImpedance) != TIXML_SUCCESS)
-		m_WaveImpedance = 0.0;
+		m_WaveImpedance = -1.0;
 
 	return true;
 }
@@ -161,6 +164,6 @@ void CSPropAbsorbingBC::ShowPropertyStatus(std::ostream& stream)
 		stream << "  E-mode file: " << m_EModeFileName << std::endl;
 	if (!m_HModeFileName.empty())
 		stream << "  H-mode file: " << m_HModeFileName << std::endl;
-	if (m_WaveImpedance != 0.0)
+	if (m_WaveImpedance > 0.0)
 		stream << "  Wave impedance: " << m_WaveImpedance << " Ohm" << std::endl;
 }
