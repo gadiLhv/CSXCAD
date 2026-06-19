@@ -695,55 +695,90 @@ cdef class CSPropAbsorbingBC(CSProperties):
     """
     Local absorbing Boundary Conditions
 
+    Supports 1st order Mur BC, Mur with super-absorption, and modal absorption
+    (ABCtype.MODAL) where the boundary absorbs a specific guided mode described
+    by external CSV mode files.
 
-    At this point this property only supports 1st order Mur, and an addition of 
-    "superabsorption" to increase ~10dB absorption efficiency.
-    In the future, the plan is to support modal absorption, and multi-modal 
-    absorption.
-
-    :param NormalSignPositive: bool             -- Positive if the normal direction will be in the positive direction of the axis, or negative.
-    :param PhaseVelocity: double                -- The phase velocity of the expected propagating mode\signal. If not set, will set 0.    
-    :param AbsorbingBoundaryType: enum ABCtype  -- 'ABCtype.MUR_1ST_1PV', 'ABCtype.MUR_1ST_1PV_SA' or 'ABCtype.UNDEFINED'. The latter will result in an error
+    :param NormalSignPositive: bool             -- True if the outward normal points in the positive axis direction.
+    :param PhaseVelocity: double                -- Phase velocity of the propagating mode. Defaults to C0.
+    :param AbsorbingBoundaryType: enum ABCtype  -- ABCtype.MUR_1ST, ABCtype.MUR_1ST_SA, ABCtype.MODAL, or ABCtype.UNDEFINED.
+    :param EModeFileName: str                   -- (MODAL only) CSV file for the E-field mode shape.
+    :param HModeFileName: str                   -- (MODAL only) CSV file for the H-field mode shape.
+    :param WaveImpedance: float                 -- (MODAL only) Wave impedance of the mode in Ohms.
     """
     def __init__(self, ParameterSet pset, *args, no_init=False, **kw):
         if no_init:
             self.thisptr = NULL
-            return 
+            return
         if not self.thisptr:
             self.thisptr = <_CSProperties*> new _CSPropAbsorbingBC(pset.thisptr)
-        
+
         for k in kw:
-            if k=='NormalSignPositive':
+            if k == 'NormalSignPositive':
                 self.SetNormalSignPositive(kw[k])
-            elif k=='PhaseVelocity':
+            elif k == 'PhaseVelocity':
                 self.SetPhaseVelocity(kw[k])
-            elif k=='AbsorbingBoundaryType':
+            elif k == 'AbsorbingBoundaryType':
                 self.SetAbsorbingBoundaryType(kw[k])
-                
-        for k in ['NormalSignPositive', 'PhaseVelocity', 'AbsorbingBoundaryType']:
+            elif k == 'EModeFileName':
+                self.SetEModeFileName(kw[k])
+            elif k == 'HModeFileName':
+                self.SetHModeFileName(kw[k])
+            elif k == 'WaveImpedance':
+                self.SetWaveImpedance(kw[k])
+
+        for k in ['NormalSignPositive', 'PhaseVelocity', 'AbsorbingBoundaryType',
+                  'EModeFileName', 'HModeFileName', 'WaveImpedance']:
             if k in kw:
                 del kw[k]
-                
+
         super(CSPropAbsorbingBC, self).__init__(pset, *args, **kw)
-        
-    def SetNormalSignPositive(self,val):
+
+    def SetNormalSignPositive(self, val):
         (<_CSPropAbsorbingBC*>self.thisptr).SetNormalSignPositive(val)
-        
+
     def GetNormalSignPositive(self):
         return (<_CSPropAbsorbingBC*>self.thisptr).GetNormalSignPositive()
-        
-    def SetPhaseVelocity(self,val):
+
+    def SetPhaseVelocity(self, val):
         (<_CSPropAbsorbingBC*>self.thisptr).SetPhaseVelocity(val)
-    
+
     def GetPhaseVelocity(self):
         return (<_CSPropAbsorbingBC*>self.thisptr).GetPhaseVelocity()
-    
-    def SetAbsorbingBoundaryType(self,val):
+
+    def SetAbsorbingBoundaryType(self, val):
         (<_CSPropAbsorbingBC*>self.thisptr).SetAbsorbingBoundaryType(val)
-    
+
     def GetAbsorbingBoundaryType(self):
         return (<_CSPropAbsorbingBC*>self.thisptr).GetAbsorbingBoundaryType()
-    
+
+    def SetEModeFileName(self, fileName):
+        """ Set the CSV file for the E-field mode shape (MODAL absorber only). """
+        assert type(fileName) is str, 'EModeFileName must be a string'
+        (<_CSPropAbsorbingBC*>self.thisptr).SetEModeFileName(fileName.encode('UTF-8'))
+
+    def GetEModeFileName(self):
+        return (<_CSPropAbsorbingBC*>self.thisptr).GetEModeFileName().decode('UTF-8')
+
+    def SetHModeFileName(self, fileName):
+        """ Set the CSV file for the H-field mode shape (MODAL absorber only). """
+        assert type(fileName) is str, 'HModeFileName must be a string'
+        (<_CSPropAbsorbingBC*>self.thisptr).SetHModeFileName(fileName.encode('UTF-8'))
+
+    def GetHModeFileName(self):
+        return (<_CSPropAbsorbingBC*>self.thisptr).GetHModeFileName().decode('UTF-8')
+
+    def GetFieldSourceIsFile(self):
+        """ Returns True when both E and H mode files have been set. """
+        return (<_CSPropAbsorbingBC*>self.thisptr).GetFieldSourceIsFile()
+
+    def SetWaveImpedance(self, Zw):
+        """ Set the wave impedance of the mode in Ohms (MODAL absorber only). """
+        (<_CSPropAbsorbingBC*>self.thisptr).SetWaveImpedance(Zw)
+
+    def GetWaveImpedance(self):
+        return (<_CSPropAbsorbingBC*>self.thisptr).GetWaveImpedance()
+
 ###############################################################################
 cdef class CSPropLumpedElement(CSProperties):
     """

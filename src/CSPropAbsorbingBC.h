@@ -32,8 +32,7 @@ public:
 		UNDEFINED	= 0,
 		MUR_1ST 	= 1,	// Mur's BC, 1st order
 		MUR_1ST_SA 	= 2,	// Mur's BC, 1st order, with Super Absorption
-		MODAL_E		= 3,	// Absorb E field
-		MODAL_H		= 4		// Absorb H field
+		MODAL		= 3		// Modal absorber - For a single specific mode
 	};
 
 	CSPropAbsorbingBC(ParameterSet* paraSet);
@@ -65,6 +64,17 @@ public:
 	void SetAbsorbingBoundaryType(ABCtype val) {AbsorbingBoundaryType = val;};
 	ABCtype GetAbsorbingBoundaryType() {return AbsorbingBoundaryType;};
 
+	//! Mode file support for modal absorber. Both E and H files must be set.
+	void SetEModeFileName(const std::string& fileName) { m_EModeFileName = fileName; }
+	std::string GetEModeFileName() const { return m_EModeFileName; }
+	void SetHModeFileName(const std::string& fileName) { m_HModeFileName = fileName; }
+	std::string GetHModeFileName() const { return m_HModeFileName; }
+	bool GetFieldSourceIsFile() const { return !m_EModeFileName.empty() && !m_HModeFileName.empty(); }
+
+	//! Wave impedance of the mode (Ohms). Required for modal absorption.
+	void SetWaveImpedance(double Zw) { m_WaveImpedance = Zw; }
+	double GetWaveImpedance() const { return m_WaveImpedance; }
+
 	virtual bool Update(std::string *ErrStr = NULL);
 
 	virtual bool Write2XML(TiXmlNode& root, bool parameterised = true, bool sparse = false);
@@ -81,5 +91,9 @@ protected:
 	int						probeBoxNumber;
 
 	const CSPropProbeBox*	RefFieldProbe;
+
+	std::string				m_EModeFileName;
+	std::string				m_HModeFileName;
+	double					m_WaveImpedance;
 
 };
